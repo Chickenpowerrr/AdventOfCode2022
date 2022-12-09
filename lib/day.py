@@ -25,9 +25,9 @@ class Day(ABC):
         return open(f'resources/day{day}.txt').read()
 
     @abstractmethod
-    def part1(self) -> str:
+    def part1(self):
         pass
 
     @abstractmethod
-    def part2(self) -> str:
+    def part2(self):
         pass
