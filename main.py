@@ -1,8 +1,7 @@
-import glob
+import argparse
 import inspect
 import os
 import re
-import sys
 from functools import partial
 from importlib import util
 from operator import is_not
@@ -21,8 +20,18 @@ def load_day(day: str) -> Day:
 
 
 if __name__ == '__main__':
-    days = filter(partial(is_not, None),
-                  [load_day(file) for file in list(os.walk('days'))[0][2]
-                   if re.match('day\\d+\\.py', file)])
-    for day in days:
-        day.run()
+    days = sorted(filter(partial(is_not, None),
+                         [load_day(file) for file in list(os.walk('days'))[0][2]
+                          if re.match('day\\d+\\.py', file)]))
+
+    parser = argparse.ArgumentParser(description='Run the Advent of Code solutions!')
+    parser.add_argument('-a', action='store_true', help="Run all days")
+    parser.add_argument('-d', type=int, choices=[day.get_number() for day in days])
+    args = parser.parse_args()
+
+    if args.a:
+        [day.run() for day in days]
+    elif args.d:
+        [day.run() for day in days if args.d == day.get_number()]
+    else:
+        max(days).run()
