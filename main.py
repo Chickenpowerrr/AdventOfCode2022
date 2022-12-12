@@ -25,13 +25,17 @@ if __name__ == '__main__':
                           if re.match('day\\d+\\.py', file)]))
 
     parser = argparse.ArgumentParser(description='Run the Advent of Code solutions!')
-    parser.add_argument('-a', action='store_true', help="Run all days")
-    parser.add_argument('-d', type=int, choices=[day.get_number() for day in days])
+    parser.add_argument('-a', action='store_true', help='Run all days')
+    parser.add_argument('-d', type=int, choices=[day.get_number() for day in days],
+                        help='Run a specific day')
+    parser.add_argument('-l', action='store_true', help='Run the last day')
     args = parser.parse_args()
 
     if args.a:
         [day.run() for day in days]
+    elif args.l:
+        max(days).run()
     elif args.d:
         [day.run() for day in days if args.d == day.get_number()]
     else:
-        max(days).run()
+        [day.run() for day in days]
