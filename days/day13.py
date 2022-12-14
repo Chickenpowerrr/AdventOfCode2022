@@ -8,7 +8,7 @@ class Day13(Day):
     def part1(self):
         result = 0
         for i, (left, right) in enumerate(self.parse_input()):
-            if self.compare(left, right) == 1:
+            if self.compare(left, right) >= 0:
                 result += i + 1
         return result
 
