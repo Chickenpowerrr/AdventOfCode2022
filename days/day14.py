@@ -19,7 +19,22 @@ class Day14(Day):
         return result
 
     def part2(self):
-        pass
+        filled, source, highest_y = self.parse_input()
+        result = 0
+        x, y = source
+        while True:
+            tx, ty = self.find_next(x, y, filled)
+            if (tx, ty) == source:
+                result += 1
+                break
+
+            if x == tx and y == ty or y == highest_y + 1:
+                filled.add((x, y))
+                result += 1
+                x, y = source
+            else:
+                x, y = tx, ty
+        return result
 
     def find_next(self, x, y, filled):
         if (x, y + 1) not in filled:
