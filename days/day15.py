@@ -20,7 +20,28 @@ class Day15(Day):
         return sum([len(r) for r in self.overlap_ranges(ranges)]) - len(target_beacons)
 
     def part2(self):
-        pass
+        width = 4000000
+        targets = [(x1, y1, abs(x1 - x2) + abs(y1 - y2)) for x1, y1, x2, y2 in self.parse_input()]
+        targets.sort(key=lambda i: i[2])
+
+        for (x, y, length) in targets:
+            a = self.test_ranges(length, targets, width, x, y - length - 1, +1, +1)
+            b = self.test_ranges(length, targets, width, x + length + 1, y, -1, +1)
+            c = self.test_ranges(length, targets, width, x, y + length + 1, -1, -1)
+            d = self.test_ranges(length, targets, width, x - length - 1, y, +1, -1)
+
+            if a is not None:
+                return a[0] * width + a[1]
+            if b is not None:
+                return b[0] * width + b[1]
+            if c is not None:
+                return c[0] * width + c[1]
+            if d is not None:
+                return d[0] * width + d[1]
+
+        if width != 4000000:
+            print('TESTING ONLY, SET width=4000000 FOR REAL OUTPUT')
+        return None
 
     def overlap_ranges(self, ranges):
         result = []
@@ -49,6 +70,17 @@ class Day15(Day):
                                                    'closest beacon is at '
                                                    'x=(-?\\d+), y=(-?\\d+)', line).groups())))
         return result
+
+    def test_ranges(self, length, targets, width, tx, ty, dx, dy):
+        for _ in range(length):
+            if tx < 0 or ty < 0 or (tx > width and dx > 0) or (ty > width and dy > 0):
+                break
+            if not (0 <= tx <= width and 0 <= ty <= width):
+                continue
+            if all(map(lambda t: abs(tx - t[0]) + abs(ty - t[1]) > t[2], targets)):
+                return tx, ty
+            tx, ty = tx + dx, ty + dy
+        return None
 
 
 class Range:
