@@ -9,12 +9,28 @@ class Day17(Day):
               {(0, 0), (1, 0), (0, 1), (1, 1)}]
 
     def part1(self):
+        pass
+        # return self.simulate(set(), 2022)
+
+    def part2(self):
         grid = set()
         blows = self.parse_input()
+        encountered = dict()
 
         blow_index = 0
-        for i in range(2022):
-            print(i)
+        for i in range(1000000000000):
+            current = (i % len(self.SHAPES), blow_index, self.get_shape(grid))
+            height = 1 - (min(y for _, y in grid) if len(grid) > 0 else 1)
+
+            if current in encountered:
+                other_i, other_height = encountered[current]
+                to_cover = 1000000000000 - other_i
+                offset = i - other_i
+                repeated = (to_cover // offset) * (height - encountered[current][1])
+                left_over = self.simulate(grid, to_cover % offset, i) - height
+                return repeated + other_height + left_over
+            encountered[current] = i, height
+
             shape = self.SHAPES[i % len(self.SHAPES)]
             shape = self.start_position(shape, grid)
             updated = True
@@ -25,8 +41,30 @@ class Day17(Day):
             grid = grid.union(shape)
         return -min(y for _, y in grid) + 1
 
-    def part2(self):
-        pass
+    def simulate(self, grid, iterations, start=0):
+        blows = self.parse_input()
+
+        blow_index = start % len(blows)
+        for i in range(start, iterations + start):
+            shape = self.SHAPES[i % len(self.SHAPES)]
+            shape = self.start_position(shape, grid)
+            updated = True
+            while updated:
+                shape = self.blow(shape, blows[blow_index], grid)
+                updated, shape = self.fall(shape, grid)
+                blow_index = (blow_index + 1) % len(blows)
+            grid = grid.union(shape)
+        return -min(y for _, y in grid) + 1
+
+
+    def get_shape(self, grid):
+        highest = min(y for _, y in grid) if len(grid) > 0 else 1
+        result = []
+        for i in range(7):
+            target = [y for x, y in grid if x == i]
+            result.append(min(target) - highest if len(target) > 0 else 0)
+        return tuple(result)
+
 
     def blow(self, shape, action, grid):
         next_shape = {(x + (-1 if action else 1), y) for x, y in shape}
