@@ -9,8 +9,7 @@ class Day17(Day):
               {(0, 0), (1, 0), (0, 1), (1, 1)}]
 
     def part1(self):
-        pass
-        # return self.simulate(set(), 2022)
+        return self.simulate(set(), 2022)
 
     def part2(self):
         grid = set()
@@ -19,17 +18,9 @@ class Day17(Day):
 
         blow_index = 0
         for i in range(1000000000000):
-            current = (i % len(self.SHAPES), blow_index, self.get_shape(grid))
-            height = 1 - (min(y for _, y in grid) if len(grid) > 0 else 1)
-
-            if current in encountered:
-                other_i, other_height = encountered[current]
-                to_cover = 1000000000000 - other_i
-                offset = i - other_i
-                repeated = (to_cover // offset) * (height - encountered[current][1])
-                left_over = self.simulate(grid, to_cover % offset, i) - height
-                return repeated + other_height + left_over
-            encountered[current] = i, height
+            before_height = 1 - (min(y for _, y in grid) if len(grid) > 0 else 1)
+            before_grid = grid
+            before_blow_index = blow_index
 
             shape = self.SHAPES[i % len(self.SHAPES)]
             shape = self.start_position(shape, grid)
@@ -39,12 +30,22 @@ class Day17(Day):
                 updated, shape = self.fall(shape, grid)
                 blow_index = (blow_index + 1) % len(blows)
             grid = grid.union(shape)
+
+            current = (i % len(self.SHAPES), blow_index, self.get_shape(grid))
+            if current in encountered:
+                other_i, other_before_height = encountered[current]
+                to_cover = 1000000000000 - other_i
+                loop_size = i - other_i
+                repeated = ((to_cover // loop_size) - 1) * (before_height - other_before_height)
+                left_over_size = to_cover % loop_size
+                left_over = self.simulate(before_grid, left_over_size, before_blow_index, i)
+                return repeated + left_over
+            encountered[current] = i, before_height
         return -min(y for _, y in grid) + 1
 
-    def simulate(self, grid, iterations, start=0):
+    def simulate(self, grid, iterations, blow_index=0, start=0):
         blows = self.parse_input()
 
-        blow_index = start % len(blows)
         for i in range(start, iterations + start):
             shape = self.SHAPES[i % len(self.SHAPES)]
             shape = self.start_position(shape, grid)
@@ -55,7 +56,6 @@ class Day17(Day):
                 blow_index = (blow_index + 1) % len(blows)
             grid = grid.union(shape)
         return -min(y for _, y in grid) + 1
-
 
     def get_shape(self, grid):
         highest = min(y for _, y in grid) if len(grid) > 0 else 1
