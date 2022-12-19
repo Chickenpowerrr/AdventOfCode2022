@@ -3,49 +3,52 @@ from math import ceil
 
 from lib.day import Day
 
-ORE = 0
-CLAY = 1
-OBSIDIAN = 2
-GEODE = 3
-
 
 class Day19(Day):
 
     def part1(self):
-        return self.simulate(self.parse_input()[0])
+        total = 0
+        for i, costs in enumerate(self.parse_input(), 1):
+            print(f'Starting: {i}')
+            total += i * self.simulate(costs, 24)
+        return total
 
     def part2(self):
-        pass
+        total = 0
+        for i, costs in enumerate(self.parse_input(), 1):
+            print(f'Starting: {i}')
+            total += i * self.simulate(costs, 32)
+        return total
 
-    def simulate(self, costs):
+    def simulate(self, costs, total):
         max_geodes = 0
-        explored = {((0, 0, 0, 0), (1, 0, 0, 0), 0)}
+        previous = {((0, 0, 0, 0), (1, 0, 0, 0), 0)}
         paths = [((0, 0, 0, 0), (1, 0, 0, 0), 0)]
 
-        i = 0
         while len(paths) > 0:
-            i += 1
-            if i % 10000 == 0:
-                print(f'{max_geodes}, {len(paths)}')
-
             resources, robots, minutes = paths.pop()
             max_geodes = max(max_geodes, resources[-1])
 
             for next_robot in range(4):
-                distance = self.get_distance(resources, robots, costs[next_robot])
-                if minutes + distance >= 23:
+                if self.could_buy_previously(resources, robots, costs[next_robot]):
                     continue
 
-                next_resources = tuple(resource + distance * robot - cost
+                distance = self.get_distance(resources, robots, costs[next_robot])
+
+                if minutes + distance + 1 >= total:
+                    max_geodes = max(max_geodes, resources[-1] + (total - minutes) * robots[-1])
+                    continue
+
+                next_resources = tuple(resource + (distance + 1) * robot - cost
                                        for resource, robot, cost
                                        in zip(resources, robots, costs[next_robot]))
                 next_robots = tuple(robot + 1 if i == next_robot else robot
                                     for i, robot in enumerate(robots))
-                next_path = (next_resources, next_robots, minutes + distance)
+                next_path = (next_resources, next_robots, minutes + distance + 1)
 
-                if next_path not in explored:
+                if next_path not in previous:
                     paths.append(next_path)
-                    explored.add(next_path)
+                    previous.add(next_path)
         return max_geodes
 
     def get_distance(self, resources, robots, costs):
@@ -58,14 +61,9 @@ class Day19(Day):
             maximum = max(maximum, ceil((cost - resource) / robot))
         return maximum
 
-    def next_resources(self, resources, robots):
-        return tuple(resource + robot for resource, robot in zip(resources, robots))
-
-    def can_buy_now(self, resources, cost):
-        return all([resources[i] >= amount for i, amount in enumerate(cost)])
-
-    def can_buy_later(self, robots, cost):
-        return all([robots[i] > 0 or amount == 0 for i, amount in enumerate(cost)])
+    def could_buy_previously(self, resources, robots, costs):
+        return all([resource - robot >= cost for resource, robot, cost
+                    in zip(resources, robots, costs)])
 
     def parse_input(self):
         result = []
