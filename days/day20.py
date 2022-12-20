@@ -3,7 +3,7 @@ from lib.day import Day
 
 class Day20(Day):
     def part1(self):
-        circular_list = self.parse_input()
+        circular_list = CircularList(self.parse_input())
         for i in range(len(circular_list)):
             circular_list.move(i)
 
@@ -12,11 +12,17 @@ class Day20(Day):
                + circular_list.search_index(3000)
 
     def part2(self):
-        pass
+        circular_list = CircularList([v * 811589153 for v in self.parse_input()])
+        for _ in range(10):
+            for i in range(len(circular_list)):
+                circular_list.move(i)
+
+        return circular_list.search_index(1000) \
+               + circular_list.search_index(2000) \
+               + circular_list.search_index(3000)
 
     def parse_input(self):
-        original_list = list(map(int, self.read_input().split()))
-        return CircularList(original_list)
+        return list(map(int, self.read_input().split()))
 
 
 class CircularList:
@@ -55,9 +61,7 @@ class CircularList:
 
         next_position = to_move
 
-        offset = to_move.value // self.length if to_move.value < 0 else 0
-
-        for _ in range((to_move.value % self.length) + offset):
+        for _ in range(to_move.value % (self.length - 1)):
             next_position = next_position.next
 
         if to_move == next_position:
