@@ -1,3 +1,4 @@
+from heapq import heappop, heappush
 from queue import Queue
 
 from lib.day import Day
@@ -5,34 +6,44 @@ from lib.day import Day
 
 class Day24(Day):
     def part1(self):
-        start, end, walls, blizzards = self.parse_input()
-        paths = Queue()
-        paths.put((start, 0))
-        highest_length = -1
+        start, end, walls, start_blizzards = self.parse_input()
+        paths = [(self.manhattan_distance(start, end), 0, start)]
+        blizzards = [start_blizzards]
 
-        i = 0
-        while paths.qsize() > 0:
-            cursor, length = paths.get()
+        visited = dict()
 
-            if highest_length != length:
-                highest_length = length
-                print(f'{length}, {i}, {paths.qsize() + 1}')
-                blizzards = self.advance_blizzards(blizzards, walls)
+        while len(paths) > 0:
+            _, length, cursor = heappop(paths)
+
+            if length not in visited:
+                visited[length] = set()
+
+            if cursor in visited[length]:
+                continue
+
+            visited[length].add(cursor)
+
+            if len(blizzards) <= length + 1:
+                blizzards.append(self.advance_blizzards(blizzards[-1], walls))
 
             if cursor == end:
                 return length
             for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0), (0, 0)):
                 target = cursor[0] + dx, cursor[1] + dy
-                if target in blizzards or (target in walls and not (start == cursor == target)):
-                    i += 1
+                if target in blizzards[length + 1] \
+                        or (target in walls and not (start == cursor == target)):
                     continue
                 if cursor == start and ((dx, dy) == (0, -1)):
                     continue
-                paths.put((target, length + 1))
+                heappush(paths, (length + 1 + self.manhattan_distance(target, end),
+                                 length + 1, target))
         return float('inf')
 
     def part2(self):
         pass
+
+    def manhattan_distance(self, first, second):
+        return abs(first[0] - second[0]) + abs(first[1] - second[1])
 
     def advance_blizzards(self, blizzards, walls):
         next_blizzards = dict()
