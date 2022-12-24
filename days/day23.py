@@ -33,10 +33,6 @@ class Day23(Day):
             next_elves = {(x, y): self.next_position(x, y, elves, delta_index)
                           for x, y in elves}
             next_elves = set(self.remove_duplicates(next_elves).values())
-
-            if next_elves is None:
-                print(next_elves)
-
             delta_index = (delta_index + 1) % len(DELTAS)
         return result
 
